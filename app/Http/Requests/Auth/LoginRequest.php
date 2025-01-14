@@ -37,19 +37,34 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function authenticate(): void
+    // public function authenticate(): void
+    // {
+    //     $this->ensureIsNotRateLimited();
+
+    //     if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+    //         RateLimiter::hit($this->throttleKey());
+
+    //         throw ValidationException::withMessages([
+    //             'email' => trans('auth.failed'),
+    //         ]);
+    //     }
+
+    //     RateLimiter::clear($this->throttleKey());
+    // }
+
+    public function authenticate() 
     {
-        $this->ensureIsNotRateLimited();
-
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
+        $this->ensureIsNotRateLimited(); 
+        
+        if($this->routeIs('owner.*')){
+            $guard = 'owners'; 
+        } else {
+            $guard = 'users'; 
         }
 
-        RateLimiter::clear($this->throttleKey());
+        if (! Auth::guard($guard)->attempt($this->only('email', 'password'), $this->filled('remember'))) {
+         RateLimiter::hit($this->throttleKey());
+        }
     }
 
     /**
